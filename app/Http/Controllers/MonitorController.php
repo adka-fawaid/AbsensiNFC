@@ -188,35 +188,25 @@ class MonitorController extends Controller
                           ->orderBy('waktu_absen', 'asc')
                           ->get();
 
-        $totalPeserta = Peserta::count();
-        $hadir = $absensis->count();
-        $tepatWaktu = $absensis->where('status', 'tepat_waktu')->count();
-        $terlambat = $absensis->where('status', 'telat')->count();
-
-        // Prepare data for PDF template
-        $data = [
+        // Generate PDF using DomPDF with custom template
+        $pdf = Pdf::loadView('pdf.daftar-hadir-bem', [
             'kegiatan' => $kegiatan,
-            'absensis' => $absensis,
-            'stats' => [
-                'total_peserta' => $totalPeserta,
-                'hadir' => $hadir,
-                'tepat_waktu' => $tepatWaktu,
-                'terlambat' => $terlambat,
-                'belum_hadir' => $totalPeserta - $hadir
-            ]
-        ];
+            'absensis' => $absensis
+        ]);
 
-        // Generate PDF using custom template
-        $pdf = Pdf::loadView('pdf.absensi-report', $data);
+        $fileName = 'Daftar_Hadir_' . str_replace(' ', '_', $kegiatan->nama) . '_' . date('Y-m-d') . '.pdf';
         
-        // Set paper orientation and size
-        $pdf->setPaper('A4', 'portrait');
+        return $pdf->download($fileName);
 
-        // Generate filename
-        $filename = 'Laporan_Absensi_' . str_replace(' ', '_', $kegiatan->nama) . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.pdf';
+        $html .= "
+                </tbody>
+            </table>
+        </body>
+        </html>";
 
-        // Download PDF
-        return $pdf->download($filename);
+        return response($html)
+            ->header('Content-Type', 'text/html')
+            ->header('Content-Disposition', 'attachment; filename="Laporan_Absensi_' . $kegiatan->nama . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.html"');
     }
 
     public function exportExcel(Request $request)
