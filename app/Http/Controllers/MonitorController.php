@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Kegiatan;
 use App\Models\Absensi;
 use App\Models\Peserta;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class MonitorController extends Controller
 {
@@ -37,7 +38,7 @@ class MonitorController extends Controller
 
         return view('monitor.index', compact(
             'kegiatans', 'kegiatan', 'absensis', 
-            'totalPeserta', 'hadir', 'tepatWaktu', 'terlambat'
+            'totalPeserta', 'hadir', 'terlambat'
         ));
     }
 
@@ -61,6 +62,9 @@ class MonitorController extends Controller
             ], 404);
         }
 
+        // Ambil data kegiatan dulu
+        $kegiatan = Kegiatan::findOrFail($kegiatanId);
+
         // Cek duplicate absensi
         $existingAbsensi = Absensi::where('peserta_id', $peserta->id)
                                  ->where('kegiatan_id', $kegiatanId)
@@ -69,25 +73,32 @@ class MonitorController extends Controller
         if ($existingAbsensi) {
             return response()->json([
                 'success' => false,
-                'message' => 'Peserta ' . $peserta->nama . ' sudah melakukan absensi untuk kegiatan ini!'
+                'message' => 'Peserta ' . $peserta->nama . ' sudah absen di kegiatan ' . $kegiatan->nama
             ], 400);
         }
-
-        // Ambil data kegiatan
-        $kegiatan = Kegiatan::findOrFail($kegiatanId);
 
         // Hitung status tepat waktu atau telat
         $tanggalKegiatan = $kegiatan->tanggal instanceof \Carbon\Carbon ? $kegiatan->tanggal->format('Y-m-d') : $kegiatan->tanggal;
         
-        try {
-            // Coba parse dengan format lengkap Y-m-d H:i:s
-            $batasWaktu = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $tanggalKegiatan . ' ' . $kegiatan->jam_batas_tepat);
-        } catch (\Exception $e) {
-            // Jika gagal, coba dengan format Y-m-d H:i
-            $batasWaktu = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $tanggalKegiatan . ' ' . substr($kegiatan->jam_batas_tepat, 0, 5));
+        // Format jam_batas_tepat dengan robust parsing
+        $jamBatas = $kegiatan->jam_batas_tepat;
+        // Pastikan format HH:MM:SS
+        if (strlen($jamBatas) == 5) {
+            $jamBatas = $jamBatas . ':00'; // Tambah detik jika HH:MM
         }
         
-        $waktuAbsen = \Carbon\Carbon::now();
+        try {
+            // Gunakan Carbon::parse yang lebih fleksibel
+            $batasWaktu = \Carbon\Carbon::parse($tanggalKegiatan . ' ' . $jamBatas, 'Asia/Jakarta');
+        } catch (\Exception $e) {
+            // Fallback jika parse gagal
+            $batasWaktu = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($jamBatas);
+        }
+        
+        $waktuAbsen = \Carbon\Carbon::now('Asia/Jakarta');
+        
+
+        
         $status = $waktuAbsen->lte($batasWaktu) ? 'tepat_waktu' : 'telat';
 
         // Simpan absensi
@@ -113,7 +124,7 @@ class MonitorController extends Controller
         
         return response()->json([
             'success' => true,
-            'message' => 'Absensi berhasil! Peserta: ' . $peserta->nama . ' - Status: ' . $statusText,
+            'message' => 'Terimakasih ' . $peserta->nama . ' sudah absen!!',
             'data' => [
                 'peserta_nama' => $peserta->nama,
                 'status' => $status,
@@ -162,5 +173,94 @@ class MonitorController extends Controller
                 'belum_hadir' => $totalPeserta - $hadir
             ]
         ]);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $kegiatanId = $request->get('kegiatan_id');
+        if (!$kegiatanId) {
+            return redirect()->back()->with('error', 'Kegiatan tidak ditemukan');
+        }
+
+        $kegiatan = Kegiatan::findOrFail($kegiatanId);
+        $absensis = Absensi::with('peserta')
+                          ->where('kegiatan_id', $kegiatanId)
+                          ->orderBy('waktu_absen', 'asc')
+                          ->get();
+
+        $totalPeserta = Peserta::count();
+        $hadir = $absensis->count();
+        $tepatWaktu = $absensis->where('status', 'tepat_waktu')->count();
+        $terlambat = $absensis->where('status', 'telat')->count();
+
+        // Prepare data for PDF template
+        $data = [
+            'kegiatan' => $kegiatan,
+            'absensis' => $absensis,
+            'stats' => [
+                'total_peserta' => $totalPeserta,
+                'hadir' => $hadir,
+                'tepat_waktu' => $tepatWaktu,
+                'terlambat' => $terlambat,
+                'belum_hadir' => $totalPeserta - $hadir
+            ]
+        ];
+
+        // Generate PDF using custom template
+        $pdf = Pdf::loadView('pdf.absensi-report', $data);
+        
+        // Set paper orientation and size
+        $pdf->setPaper('A4', 'portrait');
+
+        // Generate filename
+        $filename = 'Laporan_Absensi_' . str_replace(' ', '_', $kegiatan->nama) . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.pdf';
+
+        // Download PDF
+        return $pdf->download($filename);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $kegiatanId = $request->get('kegiatan_id');
+        if (!$kegiatanId) {
+            return redirect()->back()->with('error', 'Kegiatan tidak ditemukan');
+        }
+
+        $kegiatan = Kegiatan::findOrFail($kegiatanId);
+        $absensis = Absensi::with('peserta')
+                          ->where('kegiatan_id', $kegiatanId)
+                          ->orderBy('waktu_absen', 'asc')
+                          ->get();
+
+        $totalPeserta = Peserta::count();
+        $hadir = $absensis->count();
+        $tepatWaktu = $absensis->where('status', 'tepat_waktu')->count();
+        $terlambat = $absensis->where('status', 'telat')->count();
+
+        // Simple CSV export
+        $csv = "LAPORAN ABSENSI\n";
+        $csv .= "Kegiatan: {$kegiatan->nama}\n";
+        $csv .= "Tanggal: " . ($kegiatan->tanggal instanceof \Carbon\Carbon ? $kegiatan->tanggal->format('d/m/Y') : date('d/m/Y', strtotime($kegiatan->tanggal))) . "\n";
+        $csv .= "Jam: {$kegiatan->jam_mulai}\n\n";
+        
+        $csv .= "STATISTIK:\n";
+        $csv .= "Total Peserta,{$totalPeserta}\n";
+        $csv .= "Hadir,{$hadir}\n";
+        $csv .= "Tepat Waktu,{$tepatWaktu}\n";
+        $csv .= "Terlambat,{$terlambat}\n";
+        $csv .= "Belum Hadir," . ($totalPeserta - $hadir) . "\n\n";
+        
+        $csv .= "DATA ABSENSI:\n";
+        $csv .= "No,Nama,Jabatan,Waktu Absen,Status\n";
+
+        foreach ($absensis as $index => $absen) {
+            $waktuAbsen = $absen->waktu_absen instanceof \Carbon\Carbon ? $absen->waktu_absen->format('H:i:s') : date('H:i:s', strtotime($absen->waktu_absen));
+            $statusText = $absen->status == 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat';
+            $csv .= ($index + 1) . ",\"{$absen->peserta->nama}\",\"" . ($absen->peserta->jabatan ?? '-') . "\",{$waktuAbsen},{$statusText}\n";
+        }
+
+        return response($csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="Laporan_Absensi_' . str_replace(' ', '_', $kegiatan->nama) . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.csv"');
     }
 }

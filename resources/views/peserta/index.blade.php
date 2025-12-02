@@ -5,14 +5,30 @@
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Kelola Peserta</h1>
-    <a href="{{ route('peserta.create') }}" class="btn btn-primary">
-        <i class="bi bi-person-plus me-2"></i>Tambah Peserta
-    </a>
+    <div>
+        <a href="{{ route('peserta.create') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus me-2"></i>Tambah Peserta
+        </a>
+    </div>
 </div>
 
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
+@if(session('warning'))
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ session('warning') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-x-circle me-2"></i>{{ session('error') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
@@ -26,6 +42,8 @@
                         <tr>
                             <th>UID</th>
                             <th>Nama</th>
+                            <th>NIM</th>
+                            <th>Fakultas</th>
                             <th>Jabatan</th>
                             <th>Terdaftar</th>
                             <th width="150">Aksi</th>
@@ -34,8 +52,16 @@
                     <tbody>
                         @foreach($pesertas as $peserta)
                         <tr>
-                            <td><code>{{ $peserta->uid }}</code></td>
+                            <td>
+                                @if($peserta->uid)
+                                    <code>{{ $peserta->uid }}</code>
+                                @else
+                                    <span class="text-muted fst-italic">Belum ada UID</span>
+                                @endif
+                            </td>
                             <td>{{ $peserta->nama }}</td>
+                            <td><code>{{ $peserta->nim ?? '-' }}</code></td>
+                            <td>{{ $peserta->fakultas ?? '-' }}</td>
                             <td>{{ $peserta->jabatan ?? '-' }}</td>
                             <td>{{ $peserta->created_at instanceof \Carbon\Carbon ? $peserta->created_at->format('d/m/Y') : date('d/m/Y', strtotime($peserta->created_at)) }}</td>
                             <td>
@@ -72,4 +98,6 @@
         @endif
     </div>
 </div>
+
+
 @endsection

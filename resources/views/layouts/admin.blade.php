@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') - Sistem Absensi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .dashboard-card {
             transition: transform 0.2s;
@@ -31,8 +31,8 @@
             <nav class="col-md-2 d-none d-md-block sidebar">
                 <div class="position-sticky pt-3">
                     <div class="text-center mb-4">
-                        <i class="bi bi-building display-4 text-primary"></i>
-                        <h5>Admin Panel</h5>
+                        <img src="{{ asset('images/logo-bem.png') }}" alt="Logo BEM" style="width: 100px; height: 120px;" >
+                        <h5>BEM</h5>
                     </div>
                     
                     <ul class="nav flex-column">
@@ -53,7 +53,12 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('monitor.*') ? 'active' : '' }}" href="{{ route('monitor.index') }}">
-                                <i class="bi bi-tv me-2"></i>Monitor & Scan
+                                <i class="bi bi-tv me-2"></i>Monitor Absensi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('scan.*') ? 'active' : '' }}" href="{{ route('scan.index') }}" target="_blank">
+                                <i class="bi bi-qr-code-scan me-2"></i>Halaman Scan
                             </a>
                         </li>
                         <li class="nav-item mt-3">

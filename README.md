@@ -1,66 +1,251 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Absensi NFC
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Laravel-10.50.0-red" alt="Laravel Version">
+  <img src="https://img.shields.io/badge/PHP-8.3-blue" alt="PHP Version">
+  <img src="https://img.shields.io/badge/Bootstrap-5-purple" alt="Bootstrap Version">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
 
-## About Laravel
+Sistem absensi berbasis teknologi Near Field Communication (NFC) yang dibangun menggunakan Laravel 10. Sistem ini memungkinkan pencatatan kehadiran peserta secara otomatis menggunakan kartu NFC.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 📋 Manajemen Data
+- **Kelola Peserta**: CRUD lengkap untuk data peserta dengan informasi NIM, nama, fakultas, dan jabatan
+- **Kelola Kegiatan**: Manajemen kegiatan dengan tanggal dan waktu pelaksanaan
+- **Validasi Data**: Validasi unik untuk NIM dan UID kartu NFC
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 📱 Sistem Absensi
+- **Scan NFC**: Interface scanning kartu NFC untuk absensi otomatis
+- **Status Real-time**: Menampilkan status kehadiran secara real-time
+- **Riwayat Kehadiran**: Tracking lengkap riwayat absensi per kegiatan
+- **Deteksi Duplikasi**: Mencegah absensi ganda dalam satu kegiatan
 
-## Learning Laravel
+### 📊 Monitoring & Laporan
+- **Dashboard Monitoring**: Overview data absensi dan statistik kehadiran
+- **Export Data**: Export laporan ke format PDF dan Excel
+- **Filter Data**: Filter berdasarkan kegiatan, tanggal, dan status kehadiran
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 🔒 Keamanan
+- **Autentikasi Admin**: Sistem login khusus untuk admin
+- **Session Management**: Manajemen sesi yang aman
+- **CSRF Protection**: Perlindungan terhadap serangan CSRF
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🛠 Teknologi yang Digunakan
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Backend**: Laravel 10.50.0
+- **Database**: MySQL
+- **Frontend**: Bootstrap 5, jQuery
+- **PHP**: 8.3.26
+- **CSS Framework**: Bootstrap Icons
+- **Session**: File-based sessions
+- **Timezone**: Asia/Jakarta
 
-## Laravel Sponsors
+## 📋 Persyaratan Sistem
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- PHP >= 8.1
+- Composer
+- MySQL/MariaDB
+- Web Server (Apache/Nginx)
+- Extension PHP: PDO, Mbstring, Tokenizer, XML, JSON
 
-### Premium Partners
+## ⚡ Instalasi
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 1. Clone Repository
+```bash
+git clone https://github.com/username/AbsensiNFC.git
+cd AbsensiNFC
+```
 
-## Contributing
+### 2. Install Dependencies
+```bash
+composer install
+npm install && npm run build
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Konfigurasi Environment
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+### 4. Konfigurasi Database
+Edit file `.env` dan sesuaikan pengaturan database:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=absen
+DB_USERNAME=root
+DB_PASSWORD=your_password
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 5. Migrasi Database
+```bash
+php artisan migrate
+php artisan db:seed
+```
 
-## Security Vulnerabilities
+### 6. Jalankan Aplikasi
+```bash
+php artisan serve
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Akses aplikasi di: `http://localhost:8000`
 
-## License
+## 👤 Akun Default
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Setelah menjalankan seeder, gunakan akun berikut untuk login:
+
+- **Email**: admin@admin.com
+- **Password**: password
+
+> ⚠️ **Penting**: Segera ubah password default setelah login pertama kali!
+
+## 🔧 Menambah Administrator
+
+### Cara 1: Menggunakan Script (Termudah)
+```bash
+# Windows
+TAMBAH_ADMIN.bat
+
+# Linux/Mac
+php tambah_admin.php
+```
+
+### Cara 2: Menggunakan Artisan Command
+```bash
+php artisan admin:add
+# atau langsung dengan parameter
+php artisan admin:add "Nama Admin" "email@admin.com" "password123"
+```
+
+### Cara 3: Melihat Daftar Admin
+```bash
+# Windows  
+LIHAT_ADMIN.bat
+
+# Linux/Mac
+php lihat_admin.php
+```
+
+## 📖 Panduan Penggunaan
+
+### 1. Login Admin
+- Akses halaman login di URL utama
+- Masukkan username dan password admin
+- Sistem akan redirect ke dashboard
+
+### 2. Mengelola Peserta
+- Masuk ke menu "Kelola Peserta"
+- Tambah peserta baru dengan mengisi form
+- UID kartu NFC bisa dikosongkan dulu, diisi nanti saat kartu tersedia
+- Edit atau hapus data peserta sesuai kebutuhan
+
+### 3. Mengelola Kegiatan
+- Masuk ke menu "Kelola Kegiatan"  
+- Buat kegiatan baru dengan nama dan jadwal
+- Aktifkan kegiatan yang sedang berlangsung
+- Edit detail kegiatan jika diperlukan
+
+### 4. Melakukan Absensi
+- Masuk ke menu "Scan Absensi"
+- Pilih kegiatan yang sedang berlangsung
+- Tempelkan kartu NFC ke reader
+- Sistem otomatis mencatat kehadiran dan mencegah duplikasi
+
+### 5. Monitoring Data
+- Akses menu "Monitor Absensi"
+- Lihat data kehadiran real-time
+- Filter berdasarkan kegiatan atau tanggal
+- Export data ke PDF atau Excel
+
+## 🗂 Struktur Database
+
+### Tabel Peserta
+- `id`: Primary key
+- `uid`: UID kartu NFC (nullable, unique)
+- `nama`: Nama lengkap peserta
+- `nim`: Nomor Induk Mahasiswa (unique)
+- `fakultas`: Nama fakultas/jurusan
+- `jabatan`: Jabatan peserta (nullable)
+- `timestamps`: Created at, Updated at
+
+### Tabel Kegiatan
+- `id`: Primary key
+- `nama`: Nama kegiatan
+- `tanggal`: Tanggal pelaksanaan
+- `waktu_mulai`: Waktu mulai kegiatan
+- `waktu_selesai`: Waktu selesai kegiatan
+- `status`: Status kegiatan (aktif/nonaktif)
+- `timestamps`: Created at, Updated at
+
+### Tabel Absensi
+- `id`: Primary key
+- `peserta_id`: Foreign key ke tabel peserta
+- `kegiatan_id`: Foreign key ke tabel kegiatan
+- `waktu_absen`: Timestamp absensi
+- `status`: Status kehadiran
+- `timestamps`: Created at, Updated at
+
+## 🔧 Kustomisasi
+
+### Mengubah Timezone
+Edit file `config/app.php`:
+```php
+'timezone' => 'Asia/Jakarta',
+```
+
+### Mengubah Session Lifetime
+Edit file `.env`:
+```env
+SESSION_LIFETIME=480
+```
+
+### Kustomisasi Validasi
+Edit controller yang sesuai di folder `app/Http/Controllers/`
+
+## 🚀 Deployment
+
+### Untuk Production
+1. Set environment ke production:
+```env
+APP_ENV=production
+APP_DEBUG=false
+LOG_LEVEL=error
+```
+
+2. Optimize aplikasi:
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+composer install --optimize-autoloader --no-dev
+```
+
+3. Set permissions yang tepat:
+```bash
+chmod -R 755 storage bootstrap/cache
+```
+
+## 📝 Lisensi
+
+Proyek ini menggunakan lisensi MIT. Lihat file `LICENSE` untuk detail lengkap.
+
+## 🔄 Changelog
+
+### Version 1.0.0
+- ✅ Sistem autentikasi admin
+- ✅ CRUD peserta dengan NIM dan fakultas
+- ✅ CRUD kegiatan
+- ✅ Sistem absensi NFC dengan deteksi duplikasi
+- ✅ Dashboard monitoring real-time
+- ✅ Export laporan PDF dan Excel
+- ✅ Interface responsive dengan Bootstrap 5
+- ✅ Timezone Asia/Jakarta
+- ✅ Validasi data lengkap
+
+---
+
+**Dikembangkan dengan ❤️ menggunakan Laravel Framework**

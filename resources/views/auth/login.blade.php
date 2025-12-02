@@ -32,9 +32,9 @@
                     <div class="login-card">
                         <!-- Header -->
                         <div class="login-header p-4 text-center">
-                            <i class="bi bi-shield-lock display-4"></i>
-                            <h3 class="mt-2 mb-0">Admin Login</h3>
-                            <p class="mb-0 opacity-75">Sistem Absensi</p>
+                            <img src="{{ asset('images/logo-bem.png') }}" alt="Logo BEM" style="width: 100px; height: 110px;">
+                            <h3 class="mt-1 mb-0">BEM Admin</h3>
+                            <p class="mb-0 opacity-75">Sistem Absensi NFC</p>
                         </div>
 
                         <div class="p-4">
@@ -67,7 +67,7 @@
                                     </label>
                                     <input type="email" class="form-control form-control-lg" 
                                            id="email" name="email" value="{{ old('email') }}" 
-                                           placeholder="admin@example.com" required autofocus>
+                                            required autofocus>
                                 </div>
 
                                 <div class="mb-4">
@@ -75,7 +75,7 @@
                                         <i class="bi bi-lock me-1"></i>Password
                                     </label>
                                     <input type="password" class="form-control form-control-lg" 
-                                           id="password" name="password" placeholder="••••••••" required>
+                                           id="password" name="password" required>
                                 </div>
 
                                 <div class="d-grid">

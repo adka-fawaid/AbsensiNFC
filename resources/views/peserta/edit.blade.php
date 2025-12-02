@@ -32,16 +32,30 @@
                     @method('PUT')
                     
                     <div class="mb-3">
-                        <label for="uid" class="form-label">UID Peserta <span class="text-danger">*</span></label>
+                        <label for="uid" class="form-label">UID Peserta</label>
                         <input type="text" class="form-control" id="uid" name="uid" 
-                               value="{{ old('uid', $pesertum->uid) }}" placeholder="UID peserta" required>
-                        <div class="form-text">Unique ID yang tercetak di kartu atau tag RFID</div>
+                               value="{{ old('uid', $pesertum->uid) }}" placeholder="UID peserta (bisa dikosongkan)">
+                        <div class="form-text">Unique ID yang tercetak di kartu atau tag RFID. Bisa dikosongkan dulu</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="nama" name="nama" 
                                value="{{ old('nama', $pesertum->nama) }}" placeholder="Nama lengkap" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nim" class="form-label">NIM <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nim" name="nim" 
+                               value="{{ old('nim', $pesertum->nim) }}" placeholder="Nomor Induk Mahasiswa" required>
+                        <div class="form-text">Nomor Induk Mahasiswa yang unik</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="fakultas" class="form-label">Fakultas <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="fakultas" name="fakultas" 
+                               value="{{ old('fakultas', $pesertum->fakultas) }}" placeholder="Nama fakultas atau jurusan" required>
+                        <div class="form-text">Nama fakultas atau jurusan</div>
                     </div>
 
                     <div class="mb-4">

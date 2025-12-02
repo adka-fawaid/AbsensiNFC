@@ -31,11 +31,11 @@
                     @csrf
                     
                     <div class="mb-3">
-                        <label for="uid" class="form-label">UID Peserta <span class="text-danger">*</span></label>
+                        <label for="uid" class="form-label">UID Peserta</label>
                         <input type="text" class="form-control" id="uid" name="uid" 
-                               value="{{ old('uid') }}" placeholder="Scan kartu atau masukkan UID" 
-                               required autofocus>
-                        <div class="form-text">Unique ID yang tercetak di kartu atau tag RFID</div>
+                               value="{{ old('uid') }}" placeholder="UID kartu NFC (bisa dikosongkan dulu)" 
+                               autofocus>
+                        <div class="form-text">Unique ID yang tercetak di kartu atau tag RFID. Bisa dikosongkan dulu sampai kartu datang</div>
                     </div>
 
                     <div class="mb-3">
@@ -44,10 +44,24 @@
                                value="{{ old('nama') }}" placeholder="Masukkan nama lengkap" required>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="nim" class="form-label">NIM <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nim" name="nim" 
+                               value="{{ old('nim') }}" placeholder="Nomor Induk Mahasiswa" required>
+                        <div class="form-text">Nomor Induk Mahasiswa yang unik</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="fakultas" class="form-label">Fakultas <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="fakultas" name="fakultas" 
+                               value="{{ old('fakultas') }}" placeholder="Contoh: Teknik Informatika, Manajemen" required>
+                        <div class="form-text">Nama fakultas atau jurusan</div>
+                    </div>
+
                     <div class="mb-4">
                         <label for="jabatan" class="form-label">Jabatan</label>
                         <input type="text" class="form-control" id="jabatan" name="jabatan" 
-                               value="{{ old('jabatan') }}" placeholder="Contoh: Staff IT, Manager, dll (opsional)">
+                               value="{{ old('jabatan') }}" placeholder="Contoh: Mahasiswa, Staff, Manager (opsional)">
                         <div class="form-text">Opsional - bisa dikosongkan jika tidak diperlukan</div>
                     </div>
 

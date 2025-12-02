@@ -9,8 +9,23 @@ use App\Models\Kegiatan;
 use App\Models\Peserta;
 use App\Models\Absensi;
 
+/**
+ * Controller untuk mengelola proses scanning NFC dan absensi.
+ * 
+ * Menangani pembacaan UID kartu NFC, validasi peserta,
+ * pencatatan absensi, dan mencegah duplikasi absensi.
+ * 
+ * @package App\Http\Controllers
+ * @author Sistem Absensi NFC
+ * @version 1.0.0
+ */
 class ScanController extends Controller
 {
+    /**
+     * Menampilkan halaman scan absensi dengan daftar kegiatan aktif.
+     * 
+     * @return \Illuminate\View\View
+     */
     public function index()
     {
         // Mengambil semua kegiatan yang belum lewat tanggal
@@ -38,30 +53,49 @@ class ScanController extends Controller
             return redirect()->back()->with('error', 'Peserta dengan UID tersebut tidak ditemukan!');
         }
 
+        // Ambil data kegiatan dulu untuk keperluan notifikasi
+        $kegiatan = Kegiatan::findOrFail($kegiatanId);
+
         // Cek duplicate absensi
         $existingAbsensi = Absensi::where('peserta_id', $peserta->id)
                                  ->where('kegiatan_id', $kegiatanId)
                                  ->first();
         
         if ($existingAbsensi) {
-            return redirect()->back()->with('error', 'Peserta ' . $peserta->nama . ' sudah melakukan absensi untuk kegiatan ini!');
+            return redirect()->route('scan.index')->with([
+                'error' => 'Peserta ' . $peserta->nama . ' sudah absen di kegiatan ' . $kegiatan->nama,
+                'selected_kegiatan' => $kegiatanId
+            ]);
         }
 
-        // Ambil data kegiatan
-        $kegiatan = Kegiatan::findOrFail($kegiatanId);
+        // Kegiatan sudah diambil di atas
 
         // Hitung status tepat waktu atau telat
         $tanggalKegiatan = $kegiatan->tanggal instanceof \Carbon\Carbon ? $kegiatan->tanggal->format('Y-m-d') : $kegiatan->tanggal;
         
-        try {
-            // Coba parse dengan format lengkap Y-m-d H:i:s
-            $batasWaktu = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalKegiatan . ' ' . $kegiatan->jam_batas_tepat);
-        } catch (\Exception $e) {
-            // Jika gagal, coba dengan format Y-m-d H:i
-            $batasWaktu = Carbon::createFromFormat('Y-m-d H:i', $tanggalKegiatan . ' ' . substr($kegiatan->jam_batas_tepat, 0, 5));
+        // Format jam_batas_tepat dengan robust parsing
+        $jamBatas = $kegiatan->jam_batas_tepat;
+        // Pastikan format HH:MM
+        if (strlen($jamBatas) == 5) {
+            $jamBatas = $jamBatas . ':00'; // Tambah detik jika tidak ada
+        } elseif (strlen($jamBatas) == 8) {
+            // Sudah format HH:MM:SS
+        } else {
+            // Default ke format yang aman
+            $jamBatas = '07:00:00';
         }
         
-        $waktuAbsen = Carbon::now();
+        try {
+            $batasWaktu = Carbon::parse($tanggalKegiatan . ' ' . $jamBatas, 'Asia/Jakarta');
+        } catch (\Exception $e) {
+            // Fallback parsing
+            $batasWaktu = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalKegiatan . ' ' . $jamBatas, 'Asia/Jakarta');
+        }
+        
+        $waktuAbsen = Carbon::now('Asia/Jakarta');
+        
+
+        
         $status = $waktuAbsen->lte($batasWaktu) ? 'tepat_waktu' : 'telat';
 
         // Simpan absensi
@@ -83,8 +117,34 @@ class ScanController extends Controller
             'waktu_absen' => $waktuAbsen->format('Y-m-d H:i:s')
         ]);
 
-        $statusText = $status === 'tepat_waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT';
-        
-        return redirect()->back()->with('success', 'Absensi berhasil! Peserta: ' . $peserta->nama . ' - Status: ' . $statusText);
+        return redirect()->route('scan.index')->with([
+            'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!!',
+            'selected_kegiatan' => $kegiatanId
+        ]);
+    }
+
+    public function attendanceHistory(Kegiatan $kegiatan)
+    {
+        $attendances = Absensi::with('peserta')
+            ->where('kegiatan_id', $kegiatan->id)
+            ->orderBy('waktu_absen', 'desc')
+            ->limit(10)
+            ->get();
+
+        $data = $attendances->map(function($attendance) {
+            return [
+                'id' => $attendance->id,
+                'peserta' => [
+                    'nama' => $attendance->peserta->nama
+                ],
+                'status' => $attendance->status,
+                'waktu_absen' => \Carbon\Carbon::parse($attendance->waktu_absen)->format('H:i:s')
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
     }
 }

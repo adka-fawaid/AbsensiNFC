@@ -4,6 +4,10 @@
 /public/hot
 /public/storage
 /storage/*.key
+/storage/logs/*.log
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
 /vendor
 .env
 .env.backup
@@ -17,3 +21,20 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Development and test files
+/test_*.php
+/debug_*.php
+/check_*.php
+*.csv
+*.xlsx
+*.xls
+
+# Admin management scripts (keep local only)
+# tambah_admin.php
+# lihat_admin.php
+# TAMBAH_ADMIN.bat
+# LIHAT_ADMIN.bat
+
+# Production cache
+bootstrap/cache/*.php

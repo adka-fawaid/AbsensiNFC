@@ -46,7 +46,7 @@
     <div class="scan-container d-flex align-items-center">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-md-6">
+                <div class="col-12 col-md-8 col-lg-6">
                     <div class="scan-card p-4">
                         <!-- Header -->
                         <div class="d-flex justify-content-between align-items-start mb-4">
@@ -72,10 +72,10 @@
 
                         <!-- Alert Messages -->
                         @if(session('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
+                            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert" style="background-color: #28a745; border-color: #28a745; color: white;">
                                 <i class="bi bi-check-circle me-2"></i>
                                 {{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
                             </div>
                         @endif
 
@@ -100,17 +100,51 @@
                         <form id="scanForm" action="{{ route('scan.store') }}" method="POST">
                             @csrf
                             
-                            <!-- Dropdown Kegiatan -->
-                            <div class="mb-4">
+                            <!-- Dropdown Kegiatan (Initial Selection) -->
+                            <div class="mb-4" id="kegiatanSelectionDiv">
                                 <label for="kegiatan_id" class="form-label fw-bold">Pilih Kegiatan:</label>
                                 <select class="form-select form-select-lg" id="kegiatan_id" name="kegiatan_id" required>
                                     <option value="">-- Pilih Kegiatan --</option>
                                     @foreach($kegiatans as $kegiatan)
-                                        <option value="{{ $kegiatan->id }}" {{ old('kegiatan_id') == $kegiatan->id ? 'selected' : '' }}>
+                                        <option value="{{ $kegiatan->id }}" data-nama="{{ $kegiatan->nama }}" data-tanggal="{{ $kegiatan->tanggal instanceof \Carbon\Carbon ? $kegiatan->tanggal->format('d/m/Y') : date('d/m/Y', strtotime($kegiatan->tanggal)) }}" data-jam="{{ $kegiatan->jam_mulai }}" data-batas="{{ $kegiatan->jam_batas_tepat }}">
                                             {{ $kegiatan->nama }} - {{ $kegiatan->tanggal instanceof \Carbon\Carbon ? $kegiatan->tanggal->format('d/m/Y') : date('d/m/Y', strtotime($kegiatan->tanggal)) }} ({{ $kegiatan->jam_mulai }})
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <!-- Kegiatan Info (After Selection) -->
+                            <div class="mb-4" id="kegiatanInfoDiv" style="display: none;">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-calendar-event me-2"></i>
+                                            <strong id="selectedKegiatanNama">Kegiatan</strong>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-light" onclick="changeKegiatan()">
+                                            <i class="bi bi-pencil"></i> Ganti
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <i class="bi bi-calendar3 text-primary"></i>
+                                                <div class="small text-muted">Tanggal</div>
+                                                <strong id="selectedKegiatanTanggal">-</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <i class="bi bi-clock text-success"></i>
+                                                <div class="small text-muted">Jam Mulai</div>
+                                                <strong id="selectedKegiatanJam">-</strong>
+                                            </div>
+                                            <div class="col-4">
+                                                <i class="bi bi-stopwatch text-warning"></i>
+                                                <div class="small text-muted">Batas Tepat Waktu</div>
+                                                <strong id="selectedKegiatanBatas">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Hidden UID Input -->
@@ -126,9 +160,6 @@
                                         <div class="pulse">
                                             <i class="bi bi-credit-card display-1 text-success"></i>
                                             <p class="mt-2 text-success fw-bold">Siap menerima scan kartu...</p>
-                                            <a href="" id="monitorLink" class="btn btn-outline-info btn-sm mt-2" style="display: none;">
-                                                <i class="bi bi-tv me-1"></i>Lihat Monitor Real-time
-                                            </a>
                                         </div>
                                     </div>
                                     <div id="selectKegiatanMessage">
@@ -138,28 +169,16 @@
                                 </div>
                             </div>
 
-                            <!-- Manual Submit Button (Hidden by default) -->
-                            <div class="d-grid mt-3" id="manualSubmit" style="display: none;">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-send"></i> Submit Manual
-                                </button>
-                            </div>
+
                         </form>
 
-                        <!-- Info Kegiatan -->
-                        @if($kegiatans->count() > 0)
-                        <div class="mt-4">
-                            <h6 class="text-muted">Kegiatan Hari Ini:</h6>
-                            <div class="small">
-                                @foreach($kegiatans->take(3) as $kegiatan)
-                                <div class="d-flex justify-content-between border-bottom py-1">
-                                    <span>{{ $kegiatan->nama }}</span>
-                                    <span class="text-muted">{{ $kegiatan->jam_mulai }}</span>
-                                </div>
-                                @endforeach
+                        <!-- Riwayat Absensi -->
+                        <div class="mt-4" id="attendanceHistory">
+                            <h6 class="text-muted">Riwayat Peserta Hadir:</h6>
+                            <div class="small" id="attendanceList">
+                                <p class="text-muted text-center py-2">Pilih kegiatan untuk melihat riwayat</p>
                             </div>
                         </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -188,23 +207,48 @@
             // Handle kegiatan selection
             kegiatanSelect.addEventListener('change', function() {
                 if (this.value) {
+                    // Save selection to localStorage
+                    localStorage.setItem('selected_kegiatan_id', this.value);
+                    
+                    // Get selected option data
+                    const selectedOption = this.selectedOptions[0];
+                    const nama = selectedOption.getAttribute('data-nama');
+                    const tanggal = selectedOption.getAttribute('data-tanggal');
+                    const jam = selectedOption.getAttribute('data-jam');
+                    const batas = selectedOption.getAttribute('data-batas');
+                    
+                    // Update info display
+                    document.getElementById('selectedKegiatanNama').textContent = nama;
+                    document.getElementById('selectedKegiatanTanggal').textContent = tanggal;
+                    document.getElementById('selectedKegiatanJam').textContent = jam;
+                    document.getElementById('selectedKegiatanBatas').textContent = batas;
+                    
+                    // Hide dropdown, show info
+                    document.getElementById('kegiatanSelectionDiv').style.display = 'none';
+                    document.getElementById('kegiatanInfoDiv').style.display = 'block';
+                    
                     isFormReady = true;
                     waitingMessage.style.display = 'block';
                     selectKegiatanMessage.style.display = 'none';
                     
-                    // Show monitor link
-                    const monitorLink = document.getElementById('monitorLink');
-                    monitorLink.href = `/monitor?kegiatan_id=${this.value}`;
-                    monitorLink.style.display = 'inline-block';
+                    // Load attendance history
+                    loadAttendanceHistory(this.value);
                     
                     focusUidInput();
                 } else {
+                    // Remove from localStorage
+                    localStorage.removeItem('selected_kegiatan_id');
+                    
+                    // Show dropdown, hide info
+                    document.getElementById('kegiatanSelectionDiv').style.display = 'block';
+                    document.getElementById('kegiatanInfoDiv').style.display = 'none';
+                    
                     isFormReady = false;
                     waitingMessage.style.display = 'none';
                     selectKegiatanMessage.style.display = 'block';
                     
-                    // Hide monitor link
-                    document.getElementById('monitorLink').style.display = 'none';
+                    // Clear attendance history
+                    document.getElementById('attendanceList').innerHTML = '<p class="text-muted text-center py-2">Pilih kegiatan untuk melihat riwayat</p>';
                 }
             });
 
@@ -235,17 +279,28 @@
                 }
             });
 
+            // Restore selection from localStorage or session
+            const sessionKegiatan = '{{ session("selected_kegiatan") }}';
+            const savedKegiatan = localStorage.getItem('selected_kegiatan_id') || sessionKegiatan;
+            
+            if (savedKegiatan && savedKegiatan !== '') {
+                kegiatanSelect.value = savedKegiatan;
+                // Trigger change event to update display
+                kegiatanSelect.dispatchEvent(new Event('change'));
+            }
+            
             // Focus when page loads if kegiatan is already selected
-            if (kegiatanSelect.value) {
-                isFormReady = true;
-                waitingMessage.style.display = 'block';
-                selectKegiatanMessage.style.display = 'none';
-                focusUidInput();
+            else if (kegiatanSelect.value) {
+                kegiatanSelect.dispatchEvent(new Event('change'));
             }
 
             // Clear UID input after success/error
             @if(session('success'))
                 playSuccessSound();
+                // Refresh attendance history if kegiatan selected
+                if (kegiatanSelect.value) {
+                    loadAttendanceHistory(kegiatanSelect.value);
+                }
                 setTimeout(function() {
                     uidInput.value = '';
                     focusUidInput();
@@ -297,6 +352,59 @@
                 const parts = v.split('=');
                 return parts[0] === name ? decodeURIComponent(parts[1]) : r;
             }, '');
+        }
+
+        function loadAttendanceHistory(kegiatanId) {
+            const attendanceList = document.getElementById('attendanceList');
+            attendanceList.innerHTML = '<p class="text-muted text-center py-2"><i class="bi bi-arrow-clockwise"></i> Loading...</p>';
+            
+            fetch(`/scan/attendance-history/${kegiatanId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        let html = '';
+                        data.data.forEach(attendance => {
+                            const badgeClass = attendance.status === 'tepat_waktu' ? 'bg-success' : 'bg-warning';
+                            const statusText = attendance.status === 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat';
+                            html += `
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <div>
+                                        <strong>${attendance.peserta.nama}</strong>
+                                        <small class="text-muted d-block">${attendance.waktu_absen}</small>
+                                    </div>
+                                    <span class="badge ${badgeClass}">${statusText}</span>
+                                </div>
+                            `;
+                        });
+                        attendanceList.innerHTML = html;
+                    } else {
+                        attendanceList.innerHTML = '<p class="text-muted text-center py-2">Belum ada peserta yang hadir</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading attendance history:', error);
+                    attendanceList.innerHTML = '<p class="text-muted text-center py-2">Error loading data</p>';
+                });
+        }
+
+        function changeKegiatan() {
+            // Clear localStorage
+            localStorage.removeItem('selected_kegiatan_id');
+            
+            // Reset dropdown
+            document.getElementById('kegiatan_id').value = '';
+            
+            // Show dropdown, hide info
+            document.getElementById('kegiatanSelectionDiv').style.display = 'block';
+            document.getElementById('kegiatanInfoDiv').style.display = 'none';
+            
+            // Reset scan state
+            isFormReady = false;
+            document.getElementById('waitingMessage').style.display = 'none';
+            document.getElementById('selectKegiatanMessage').style.display = 'block';
+            
+            // Clear attendance history
+            document.getElementById('attendanceList').innerHTML = '<p class="text-muted text-center py-2">Pilih kegiatan untuk melihat riwayat</p>';
         }
     </script>
 </body>
