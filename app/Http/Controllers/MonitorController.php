@@ -29,7 +29,7 @@ class MonitorController extends Controller
             
             $hadir = $absensis->count();
             $tepatWaktu = $absensis->where('status', 'tepat_waktu')->count();
-            $terlambat = $absensis->where('status', 'telat')->count();
+            $terlambat = $absensis->where('status', 'terlambat')->count();
         }
 
         $kegiatans = Kegiatan::orderBy('tanggal', 'desc')
@@ -77,29 +77,32 @@ class MonitorController extends Controller
             ], 400);
         }
 
-        // Hitung status tepat waktu atau telat
+        // Hitung status tepat waktu atau terlambat
         $tanggalKegiatan = $kegiatan->tanggal instanceof \Carbon\Carbon ? $kegiatan->tanggal->format('Y-m-d') : $kegiatan->tanggal;
         
-        // Format jam_batas_tepat dengan robust parsing
-        $jamBatas = $kegiatan->jam_batas_tepat;
+        // Gunakan jam_mulai sebagai batas, lebih logis daripada jam_batas_tepat
+        $jamMulai = $kegiatan->jam_mulai;
         // Pastikan format HH:MM:SS
-        if (strlen($jamBatas) == 5) {
-            $jamBatas = $jamBatas . ':00'; // Tambah detik jika HH:MM
+        if (strlen($jamMulai) == 5) {
+            $jamMulai = $jamMulai . ':00'; // Tambah detik jika HH:MM
         }
         
         try {
-            // Gunakan Carbon::parse yang lebih fleksibel
-            $batasWaktu = \Carbon\Carbon::parse($tanggalKegiatan . ' ' . $jamBatas, 'Asia/Jakarta');
+            // Batas waktu adalah 15 menit setelah jam mulai kegiatan
+            $waktuMulai = \Carbon\Carbon::parse($tanggalKegiatan . ' ' . $jamMulai, 'Asia/Jakarta');
+            $batasWaktu = $waktuMulai->copy()->addMinutes(15); // Toleransi 15 menit
         } catch (\Exception $e) {
             // Fallback jika parse gagal
-            $batasWaktu = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($jamBatas);
+            $waktuMulai = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($jamMulai);
+            $batasWaktu = $waktuMulai->copy()->addMinutes(15);
         }
         
         $waktuAbsen = \Carbon\Carbon::now('Asia/Jakarta');
         
-
-        
-        $status = $waktuAbsen->lte($batasWaktu) ? 'tepat_waktu' : 'telat';
+        // Logic: 
+        // - Tepat waktu: absen sebelum/pada batas waktu (jam_mulai + 15 menit)
+        // - Terlambat: absen setelah batas waktu
+        $status = $waktuAbsen->lte($batasWaktu) ? 'tepat_waktu' : 'terlambat';
 
         // Simpan absensi
         Absensi::create([
@@ -116,8 +119,10 @@ class MonitorController extends Controller
             'peserta_nama' => $peserta->nama,
             'kegiatan_id' => $kegiatanId,
             'kegiatan_nama' => $kegiatan->nama,
-            'status' => $status,
-            'waktu_absen' => $waktuAbsen->format('Y-m-d H:i:s')
+            'jam_mulai' => $kegiatan->jam_mulai,
+            'batas_waktu' => $batasWaktu->format('Y-m-d H:i:s'),
+            'waktu_absen' => $waktuAbsen->format('Y-m-d H:i:s'),
+            'status' => $status
         ]);
 
         $statusText = $status === 'tepat_waktu' ? 'TEPAT WAKTU' : 'TERLAMBAT';
@@ -151,13 +156,17 @@ class MonitorController extends Controller
         $totalPeserta = Peserta::count();
         $hadir = $absensis->count();
         $tepatWaktu = $absensis->where('status', 'tepat_waktu')->count();
-        $terlambat = $absensis->where('status', 'telat')->count();
+        $terlambat = $absensis->where('status', 'terlambat')->count();
+
+        // Get all peserta for filter functionality
+        $allPesertas = Peserta::select('id', 'nama', 'jabatan')->get();
 
         return response()->json([
             'kegiatan' => $kegiatan,
             'absensis' => $absensis->map(function($absen) {
                 return [
                     'id' => $absen->id,
+                    'peserta_id' => $absen->peserta->id,
                     'peserta_nama' => $absen->peserta->nama,
                     'peserta_jabatan' => $absen->peserta->jabatan,
                     'waktu_absen' => $absen->waktu_absen instanceof \Carbon\Carbon ? $absen->waktu_absen->format('H:i:s') : date('H:i:s', strtotime($absen->waktu_absen)),
@@ -165,6 +174,7 @@ class MonitorController extends Controller
                     'status_text' => $absen->status == 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat'
                 ];
             }),
+            'pesertas' => $allPesertas,
             'stats' => [
                 'total_peserta' => $totalPeserta,
                 'hadir' => $hadir,

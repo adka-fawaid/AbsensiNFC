@@ -24,12 +24,12 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Nama Kegiatan</th>
-                            <th>Tanggal</th>
-                            <th>Jam</th>
-                            <th>Lokasi</th>
-                            <th>Status</th>
-                            <th width="150">Aksi</th>
+                            <th style="min-width: 200px;">Nama Kegiatan</th>
+                            <th style="min-width: 100px;">Tanggal</th>
+                            <th style="min-width: 120px;">Jam</th>
+                            <th style="min-width: 120px;">Lokasi</th>
+                            <th style="min-width: 100px;">Status</th>
+                            <th style="width: 120px; min-width: 120px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -61,15 +61,19 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('kegiatan.edit', $kegiatan) }}" class="btn btn-outline-primary">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ route('kegiatan.edit', $kegiatan) }}" 
+                                       class="btn btn-outline-primary" 
+                                       title="Edit Kegiatan">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form action="{{ route('kegiatan.destroy', $kegiatan) }}" method="POST" class="d-inline"
                                           onsubmit="return confirm('Yakin ingin menghapus kegiatan {{ $kegiatan->nama }}?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger">
+                                        <button type="submit" 
+                                                class="btn btn-outline-danger" 
+                                                title="Hapus Kegiatan">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -81,7 +85,9 @@
                 </table>
             </div>
 
-            {{ $kegiatans->links() }}
+            <div class="d-flex justify-content-center mt-4">
+                {{ $kegiatans->links('pagination::bootstrap-4') }}
+            </div>
         @else
             <div class="text-center py-5">
                 <i class="bi bi-calendar-x display-1 text-muted"></i>

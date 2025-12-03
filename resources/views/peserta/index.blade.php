@@ -40,13 +40,13 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>UID</th>
-                            <th>Nama</th>
-                            <th>NIM</th>
-                            <th>Fakultas</th>
-                            <th>Jabatan</th>
-                            <th>Terdaftar</th>
-                            <th width="150">Aksi</th>
+                            <th style="min-width: 120px;">UID</th>
+                            <th style="min-width: 150px;">Nama</th>
+                            <th style="min-width: 100px;">NIM</th>
+                            <th style="min-width: 120px;">Fakultas</th>
+                            <th style="min-width: 120px;">Jabatan</th>
+                            <th style="min-width: 100px;">Terdaftar</th>
+                            <th style="width: 120px; min-width: 120px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -65,15 +65,19 @@
                             <td>{{ $peserta->jabatan ?? '-' }}</td>
                             <td>{{ $peserta->created_at instanceof \Carbon\Carbon ? $peserta->created_at->format('d/m/Y') : date('d/m/Y', strtotime($peserta->created_at)) }}</td>
                             <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ route('peserta.edit', $peserta) }}" class="btn btn-outline-primary">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ route('peserta.edit', $peserta) }}" 
+                                       class="btn btn-outline-primary" 
+                                       title="Edit Peserta">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form action="{{ route('peserta.destroy', $peserta) }}" method="POST" class="d-inline"
                                           onsubmit="return confirm('Yakin ingin menghapus peserta {{ $peserta->nama }}?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger">
+                                        <button type="submit" 
+                                                class="btn btn-outline-danger" 
+                                                title="Hapus Peserta">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -85,7 +89,9 @@
                 </table>
             </div>
 
-            {{ $pesertas->links() }}
+            <div class="d-flex justify-content-center mt-4">
+                {{ $pesertas->links('pagination::bootstrap-4') }}
+            </div>
         @else
             <div class="text-center py-5">
                 <i class="bi bi-people display-1 text-muted"></i>

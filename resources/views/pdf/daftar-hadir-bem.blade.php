@@ -138,7 +138,7 @@
             <th style="width:110px;">NIM</th>
             <th style="width:130px;">KEMENTERIAN/BIRO</th>
             <th style="width:80px;">WAKTU HADIR</th>
-            <th style="width:60px;">TTD</th>
+
         </tr>
     </thead>
 
@@ -150,8 +150,7 @@
                 <td>{{ $a->peserta->nama }}</td>
                 <td style="text-align:center;">{{ $a->peserta->nim ?? '-' }}</td>
                 <td>{{ $a->peserta->jabatan ?? '-' }}</td>
-                <td style="text-align:center;">{{ \Carbon\Carbon::parse($a->waktu_absen)->format('H:i:s') }}</td>
-                <td class="ttd-col"></td>   
+                <td style="text-align:center;">{{ \Carbon\Carbon::parse($a->waktu_absen)->format('H:i:s') }}</td> 
             </tr>
             @endforeach
         @else

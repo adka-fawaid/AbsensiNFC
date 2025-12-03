@@ -23,6 +23,100 @@
             background: #007bff;
             color: white !important;
         }
+        
+        /* Fix untuk button yang terpotong */
+        .btn-group-sm > .btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        /* Pastikan table responsive berfungsi dengan baik */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Fix untuk action buttons di mobile */
+        @media (max-width: 768px) {
+            .btn-group {
+                display: flex;
+                flex-wrap: nowrap;
+            }
+            
+            .btn-group .btn {
+                flex-shrink: 0;
+                min-width: 35px;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            th:last-child,
+            td:last-child {
+                min-width: 120px;
+            }
+        }
+        
+        /* Improve overall spacing */
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Better button styling */
+        .btn-outline-primary:hover,
+        .btn-outline-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Fix pagination styling */
+        .pagination {
+            margin-bottom: 0;
+        }
+        
+        .pagination .page-link {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #007bff;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            margin: 0 2px;
+            border-radius: 0.25rem;
+        }
+        
+        .pagination .page-link:hover {
+            z-index: 2;
+            color: #0056b3;
+            text-decoration: none;
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .pagination .page-item.active .page-link {
+            z-index: 1;
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+        
+        /* Responsive pagination */
+        @media (max-width: 576px) {
+            .pagination .page-link {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+                margin: 0 1px;
+            }
+        }
     </style>
 </head>
 <body>

@@ -76,7 +76,7 @@
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card bg-primary text-white">
-            <div class="card-body text-center">
+            <div class="card-body text-center" >
                 <h2 id="totalPeserta">{{ $totalPeserta }}</h2>
                 <p class="mb-0">Total Peserta</p>
             </div>
@@ -91,18 +91,32 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-warning text-white">
+        <div class="card bg-warning text-white filter-card" 
+             data-filter="terlambat" 
+             onclick="filterData('terlambat')" 
+             style="cursor: pointer; transition: transform 0.2s;" 
+             onmouseover="this.style.transform='translateY(-2px)'" 
+             onmouseout="this.style.transform='translateY(0)'">
             <div class="card-body text-center">
                 <h2 id="terlambat">{{ $terlambat ?? 0 }}</h2>
-                <p class="mb-0">Terlambat</p>
+                <p class="mb-0">
+                    Terlambat
+                </p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-danger text-white">
+        <div class="card bg-danger text-white filter-card" 
+             data-filter="belum-hadir" 
+             onclick="filterData('belum-hadir')" 
+             style="cursor: pointer; transition: transform 0.2s;" 
+             onmouseover="this.style.transform='translateY(-2px)'" 
+             onmouseout="this.style.transform='translateY(0)'">
             <div class="card-body text-center">
                 <h2 id="belumHadir">{{ $totalPeserta - $hadir }}</h2>
-                <p class="mb-0">Belum Hadir</p>
+                <p class="mb-0">
+                    Belum Hadir
+                </p>
             </div>
         </div>
     </div>
@@ -116,6 +130,21 @@
         {{ $kegiatan->jam_mulai }} 
         @if($kegiatan->lokasi)| {{ $kegiatan->lokasi }}@endif
     </small>
+</div>
+@endif
+
+<!-- Filter Controls -->
+@if($kegiatan)
+<div id="filterControls" class="mb-3" style="display: none;">
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <div>
+            <i class="bi bi-funnel me-2"></i>
+            <span id="filterStatus">Menampilkan semua data</span>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="clearFilter()">
+            <i class="bi bi-x-circle me-1"></i>Hapus Filter
+        </button>
+    </div>
 </div>
 @endif
 
@@ -184,6 +213,9 @@
 <script>
 let currentKegiatanId = '{{ request("kegiatan_id") }}';
 let refreshInterval;
+let currentFilter = null;
+let allAbsensis = [];
+let allPesertas = @json($kegiatan ? $kegiatan->pesertas : []);
 
 document.addEventListener('DOMContentLoaded', function() {
     updateCurrentTime();
@@ -227,6 +259,11 @@ function fetchLatestData() {
             const updateNow = new Date();
             const jakartaUpdateTime = new Date(updateNow.toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
             document.getElementById('updateTime').textContent = jakartaUpdateTime.toLocaleTimeString('id-ID');
+            
+            // Update peserta data for belum hadir filter
+            if (data.pesertas) {
+                allPesertas = data.pesertas;
+            }
         })
         .catch(error => console.error('Error:', error));
 }
@@ -239,36 +276,33 @@ function updateStats(stats) {
 }
 
 function updateTable(absensis) {
+    allAbsensis = absensis; // Store for filtering
     const tbody = document.getElementById('absensiTableBody');
     if (!tbody) return;
     
-    if (absensis.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center py-4">
-                    <i class="bi bi-inbox display-4 text-muted"></i>
-                    <p class="mt-2">Belum ada data absensi</p>
-                    <a href="{{ route('scan.index') }}" class="btn btn-success btn-sm" target="_blank">
-                        <i class="bi bi-qr-code-scan me-1"></i>Mulai Scan
-                    </a>
-                </td>
-            </tr>
-        `;
+    // Apply current filter
+    let displayData = currentFilter ? applyFilter(absensis) : absensis;
+    
+    if (displayData.length === 0) {
+        const emptyMessage = currentFilter ? 
+            `<tr><td colspan="5" class="text-center py-4"><i class="bi bi-inbox display-4 text-muted"></i><p class="mt-2">Tidak ada data untuk filter ini</p></td></tr>` :
+            `<tr><td colspan="5" class="text-center py-4"><i class="bi bi-inbox display-4 text-muted"></i><p class="mt-2">Belum ada data absensi</p><a href="{{ route('scan.index') }}" class="btn btn-success btn-sm" target="_blank"><i class="bi bi-qr-code-scan me-1"></i>Mulai Scan</a></td></tr>`;
+        tbody.innerHTML = emptyMessage;
         return;
     }
 
     let html = '';
-    absensis.forEach((absen, index) => {
+    displayData.forEach((absen, index) => {
         const badgeClass = absen.status === 'tepat_waktu' ? 'success' : 'warning';
         html += `
             <tr>
                 <td>${index + 1}</td>
                 <td><strong>${absen.peserta_nama}</strong></td>
                 <td>${absen.peserta_jabatan || '-'}</td>
-                <td>${absen.waktu_absen}</td>
+                <td>${absen.waktu_absen || '-'}</td>
                 <td>
                     <span class="badge bg-${badgeClass}">
-                        ${absen.status_text}
+                        ${absen.status_text || 'Belum Hadir'}
                     </span>
                 </td>
             </tr>
@@ -276,6 +310,77 @@ function updateTable(absensis) {
     });
     
     tbody.innerHTML = html;
+}
+
+function filterData(filterType) {
+    currentFilter = filterType;
+    
+    // Update visual feedback
+    document.querySelectorAll('.filter-card').forEach(card => {
+        card.style.boxShadow = '';
+    });
+    
+    const activeCard = document.querySelector(`[data-filter="${filterType}"]`);
+    if (activeCard) {
+        activeCard.style.boxShadow = '0 0 15px rgba(255,255,255,0.5)';
+    }
+    
+    // Show filter controls
+    const filterControls = document.getElementById('filterControls');
+    if (filterControls) {
+        filterControls.style.display = 'block';
+        
+        const filterStatus = document.getElementById('filterStatus');
+        if (filterType === 'terlambat') {
+            filterStatus.textContent = 'Menampilkan peserta yang terlambat';
+        } else if (filterType === 'belum-hadir') {
+            filterStatus.textContent = 'Menampilkan peserta yang belum hadir';
+        }
+    }
+    
+    // Apply filter to current data
+    updateTable(allAbsensis);
+}
+
+function clearFilter() {
+    currentFilter = null;
+    
+    // Remove visual feedback
+    document.querySelectorAll('.filter-card').forEach(card => {
+        card.style.boxShadow = '';
+    });
+    
+    // Hide filter controls
+    const filterControls = document.getElementById('filterControls');
+    if (filterControls) {
+        filterControls.style.display = 'none';
+    }
+    
+    // Show all data
+    updateTable(allAbsensis);
+}
+
+function applyFilter(absensis) {
+    if (!currentFilter) return absensis;
+    
+    if (currentFilter === 'terlambat') {
+        return absensis.filter(absen => absen.status === 'terlambat');
+    } else if (currentFilter === 'belum-hadir') {
+        // Show people who haven't attended
+        const attendedIds = absensis.map(absen => absen.peserta_id);
+        const belumHadirPesertas = allPesertas.filter(peserta => !attendedIds.includes(peserta.id));
+        
+        return belumHadirPesertas.map(peserta => ({
+            peserta_nama: peserta.nama,
+            peserta_jabatan: peserta.jabatan,
+            waktu_absen: null,
+            status: 'belum_hadir',
+            status_text: 'Belum Hadir',
+            peserta_id: peserta.id
+        }));
+    }
+    
+    return absensis;
 }
 
 window.addEventListener('beforeunload', function() {
