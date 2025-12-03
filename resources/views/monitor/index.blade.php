@@ -13,14 +13,42 @@
     </div>
 </div>
 
+<!-- Info Alert -->
+<div class="alert alert-info mb-3">
+    <div class="d-flex">
+        <div class="flex-shrink-0">
+            <i class="bi bi-info-circle-fill"></i>
+        </div>
+        <div class="flex-grow-1 ms-3">
+            <strong>Monitoring Semua Kegiatan</strong><br>
+            <small>Kamu bisa memantau dan export data dari semua kegiatan (selesai, berlangsung, atau akan datang)</small>
+        </div>
+    </div>
+</div>
+
 <!-- Simple Controls -->
 <div class="row mb-4">
     <div class="col-md-8">
         <select class="form-select form-select-lg" id="kegiatan_id">
             <option value="">-- Pilih Kegiatan untuk Monitoring --</option>
             @foreach($kegiatans as $keg)
+                @php
+                    $tanggalKegiatan = $keg->tanggal instanceof \Carbon\Carbon ? $keg->tanggal->format('Y-m-d') : $keg->tanggal;
+                    $waktuSekarang = now()->format('Y-m-d');
+                    
+                    if ($tanggalKegiatan < $waktuSekarang) {
+                        $statusKegiatan = 'SELESAI';
+                        $statusClass = 'success';
+                    } elseif ($tanggalKegiatan == $waktuSekarang) {
+                        $statusKegiatan = 'BERLANGSUNG';
+                        $statusClass = 'danger';
+                    } else {
+                        $statusKegiatan = 'AKAN DATANG';
+                        $statusClass = 'warning';
+                    }
+                @endphp
                 <option value="{{ $keg->id }}" {{ request('kegiatan_id') == $keg->id ? 'selected' : '' }}>
-                    {{ $keg->nama }} - {{ $keg->tanggal instanceof \Carbon\Carbon ? $keg->tanggal->format('d/m/Y') : date('d/m/Y', strtotime($keg->tanggal)) }} ({{ $keg->jam_mulai }})
+                    [{{ $statusKegiatan }}] {{ $keg->nama }} - {{ $keg->tanggal instanceof \Carbon\Carbon ? $keg->tanggal->format('d/m/Y') : date('d/m/Y', strtotime($keg->tanggal)) }} ({{ $keg->jam_mulai }})
                 </option>
             @endforeach
         </select>

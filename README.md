@@ -1,13 +1,14 @@
-# Sistem Absensi NFC
+# BEM UDINUS - Sistem Absensi Digital
 
 <p align="center">
   <img src="https://img.shields.io/badge/Laravel-10.50.0-red" alt="Laravel Version">
   <img src="https://img.shields.io/badge/PHP-8.3-blue" alt="PHP Version">
   <img src="https://img.shields.io/badge/Bootstrap-5-purple" alt="Bootstrap Version">
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/MySQL-8.0-orange" alt="MySQL Version">
+  <img src="https://img.shields.io/badge/Status-Production_Ready-green" alt="Status">
 </p>
 
-Sistem absensi berbasis teknologi Near Field Communication (NFC) yang dibangun menggunakan Laravel 10. Sistem ini memungkinkan pencatatan kehadiran peserta secara otomatis menggunakan kartu NFC.
+**Sistem Absensi Digital** berbasis NFC untuk Badan Eksekutif Mahasiswa Keluarga Mahasiswa Universitas Dian Nuswantoro. Aplikasi modern dengan antarmuka profesional yang memungkinkan pencatatan kehadiran secara real-time dan export laporan resmi BEM.
 
 ## 🚀 Fitur Utama
 

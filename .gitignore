@@ -31,10 +31,10 @@ yarn-error.log
 *.xls
 
 # Admin management scripts (keep local only)
-# tambah_admin.php
-# lihat_admin.php
-# TAMBAH_ADMIN.bat
-# LIHAT_ADMIN.bat
+tambah_admin.php
+lihat_admin.php
+TAMBAH_ADMIN.bat
+LIHAT_ADMIN.bat
 
 # Production cache
 bootstrap/cache/*.php

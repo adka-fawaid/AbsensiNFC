@@ -32,8 +32,8 @@ class MonitorController extends Controller
             $terlambat = $absensis->where('status', 'telat')->count();
         }
 
-        $kegiatans = Kegiatan::where('tanggal', '>=', now()->format('Y-m-d'))
-                            ->orderBy('tanggal', 'asc')
+        $kegiatans = Kegiatan::orderBy('tanggal', 'desc')
+                            ->orderBy('jam_mulai', 'desc')
                             ->get();
 
         return view('monitor.index', compact(

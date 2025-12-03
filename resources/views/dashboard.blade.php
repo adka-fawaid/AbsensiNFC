@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistem Absensi</title>
+    <title>Dashboard - BEM UDINUS | Sistem Absensi Digital</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -32,7 +32,7 @@
     <nav class="navbar navbar-expand-md navbar-light bg-light d-md-none">
         <div class="container-fluid">
             <span class="navbar-brand">
-                <img src="{{ asset('images/logo-bem.svg') }}" alt="Logo BEM" style="width: 30px; height: 30px;" class="me-2">BEM
+                <img src="{{ asset('images/logo-bem.png') }}" alt="Logo BEM" style="width: 30px; height: 30px;" class="me-2">BEM UDINUS
             </span>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileSidebar">
                 <span class="navbar-toggler-icon"></span>

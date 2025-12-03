@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - Sistem Absensi</title>
+    <title>Admin Login - BEM UDINUS | Sistem Absensi Digital</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -32,9 +32,9 @@
                     <div class="login-card">
                         <!-- Header -->
                         <div class="login-header p-4 text-center">
-                            <img src="{{ asset('images/logo-bem.png') }}" alt="Logo BEM" style="width: 100px; height: 110px;">
-                            <h3 class="mt-1 mb-0">BEM Admin</h3>
-                            <p class="mb-0 opacity-75">Sistem Absensi NFC</p>
+                            <img src="{{ asset('images/logo-bem.png') }}" alt="Logo BEM" class="mb-2" style="width: 80px; height: auto;">
+                            <h4 class="mb-1 fw-bold">BEM UDINUS</h4>
+                            <p class="mb-0 opacity-75">Sistem Absensi Digital</p>
                         </div>
 
                         <div class="p-4">
@@ -85,23 +85,13 @@
                                     </button>
                                 </div>
                             </form>
-
-                            <!-- Info Default Login -->
-                            <div class="mt-4 p-3 bg-light rounded">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    <strong>Default Login:</strong><br>
-                                    Email: admin@admin.com<br>
-                                    Password: password
-                                </small>
-                            </div>
                         </div>
                     </div>
 
                     <!-- Footer -->
                     <div class="text-center mt-3">
                         <small class="text-white opacity-75">
-                            © {{ date('Y') }} Sistem Absensi. All rights reserved.
+                            © {{ date('Y') }} Kementerian Kretivitas dan Inovasi BEM Keluarga Mahasiswa Universitas Dian Nuswantoro. All rights reserved.
                         </small>
                     </div>
                 </div>
