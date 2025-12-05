@@ -4,7 +4,9 @@
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2"><i class="bi bi-tv me-2"></i>Monitor Absensi</h1>
+    <div class="d-flex align-items-center">
+        <h1 class="h2 mb-0">Monitor Absensi</h1>
+    </div>
     <div>
         <span id="currentTime" class="text-muted me-3"></span>
         @if($kegiatan)
@@ -65,7 +67,7 @@
             </div>
         @else
             <a href="{{ route('scan.index') }}" class="btn btn-primary btn-lg w-100" target="_blank">
-                <i class="bi bi-qr-code-scan me-1"></i>Buka Halaman Scan
+                <i class="bi bi-qr-code-scan me-1"></i>Mulai Scan
             </a>
         @endif
     </div>

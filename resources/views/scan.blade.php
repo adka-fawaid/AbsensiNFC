@@ -84,22 +84,24 @@
                         <!-- Header -->
                         <div class="d-flex justify-content-between align-items-start mb-4">
                             <div class="text-center flex-grow-1">
-                                <i class="bi bi-qr-code-scan display-4 text-primary"></i>
+                                <i class="bi bi-qr-code-scan display-4 text-primary" ></i>
                                 <h3 class="mt-2">Admin Scan Absensi</h3>
-                                <div class="device-info">
-                                    Device: <span id="deviceName">{{ request()->cookie('device_name', 'Unknown') }}</span>
-                                    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="setDeviceName()">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                </div>
                             </div>
                             <div>
-                                <form action="{{ route('admin.logout') }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Logout">
-                                        <i class="bi bi-box-arrow-right"></i>
-                                    </button>
-                                </form>
+                                @auth('admin')
+                                    <!-- Jika sudah login, tampilkan tombol logout -->
+                                    <form action="{{ route('admin.logout') }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Logout">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    <!-- Jika belum login, tampilkan tombol login -->
+                                    <a href="{{ route('admin.login.form') }}" class="btn btn-sm" title="Login Admin">
+                                        <i class="bi bi-person-circle"></i>
+                                    </a>
+                                @endauth
                             </div>
                         </div>
 
@@ -196,9 +198,11 @@
                                 </div>
                             </div>
 
+
+
                             <!-- Hidden UID Input -->
                             <input type="text" id="uidInput" name="uid" autocomplete="off">
-                            
+            
                             <!-- Hidden Device Name -->
                             <input type="hidden" name="device_name" id="deviceNameInput">
 
@@ -499,6 +503,8 @@
             // Clear attendance history
             document.getElementById('attendanceList').innerHTML = '<p class="text-muted text-center py-2">Pilih kegiatan untuk melihat riwayat</p>';
         }
+
+
     </script>
 </body>
 </html>

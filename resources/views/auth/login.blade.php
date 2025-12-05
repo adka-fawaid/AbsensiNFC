@@ -31,7 +31,10 @@
                 <div class="col-md-4">
                     <div class="login-card">
                         <!-- Header -->
-                        <div class="login-header p-4 text-center">
+                        <div class="login-header p-4 text-center position-relative">
+                            <a href="{{ route('home') }}" class="btn btn-sm  position-absolute top-0 start-0 m-3" title="Kembali ke Scan">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
                             <img src="{{ asset('images/logo-bem.png') }}" alt="Logo BEM" class="mb-2" style="width: 80px; height: auto;">
                             <h4 class="mb-1 fw-bold">BEM UDINUS</h4>
                             <p class="mb-0 opacity-75">Sistem Absensi Digital</p>
@@ -85,6 +88,14 @@
                                     </button>
                                 </div>
                             </form>
+
+                            <!-- Link kembali ke scan -->
+                            <div class="text-center mt-3">
+                                <a href="{{ route('home') }}" class="text-decoration-none">
+                                    <i class="bi bi-qr-code-scan me-1"></i>
+                                    <small>Kembali ke Halaman Scan</small>
+                                </a>
+                            </div>
                         </div>
                     </div>
 

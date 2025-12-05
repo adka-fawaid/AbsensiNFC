@@ -25,7 +25,14 @@ class AuthController extends Controller
 
         if (Auth::guard('admin')->attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+            
+            // Jika ada intended URL, redirect kesana. Jika tidak, ke dashboard
+            $intendedUrl = session('url.intended');
+            if ($intendedUrl && $intendedUrl !== route('admin.login.form')) {
+                return redirect()->intended($intendedUrl);
+            }
+            
+            return redirect()->route('dashboard');
         }
 
         return redirect()->back()->with('error', 'Email atau password salah!')->withInput();
@@ -37,6 +44,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
-        return redirect('/login');
+        return redirect('/')->with('success', 'Logout berhasil!');
     }
 }
