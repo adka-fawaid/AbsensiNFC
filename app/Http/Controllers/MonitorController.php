@@ -204,7 +204,10 @@ class MonitorController extends Controller
             'absensis' => $absensis
         ]);
 
-        $fileName = 'Daftar_Hadir_' . str_replace(' ', '_', $kegiatan->nama) . '_' . date('Y-m-d') . '.pdf';
+        // Bersihkan nama kegiatan dari karakter tidak valid untuk nama file
+        $cleanName = preg_replace('/[\/\\\\:*?"<>|]/', '_', $kegiatan->nama);
+        $cleanName = str_replace(' ', '_', $cleanName);
+        $fileName = 'Daftar_Hadir_' . $cleanName . '_' . date('Y-m-d') . '.pdf';
         
         return $pdf->download($fileName);
 
@@ -214,9 +217,13 @@ class MonitorController extends Controller
         </body>
         </html>";
 
+        // Bersihkan nama kegiatan dari karakter tidak valid untuk nama file
+        $cleanName = preg_replace('/[\/\\\\:*?"<>|]/', '_', $kegiatan->nama);
+        $cleanName = str_replace(' ', '_', $cleanName);
+        
         return response($html)
             ->header('Content-Type', 'text/html')
-            ->header('Content-Disposition', 'attachment; filename="Laporan_Absensi_' . $kegiatan->nama . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.html"');
+            ->header('Content-Disposition', 'attachment; filename="Laporan_Absensi_' . $cleanName . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.html"');
     }
 
     public function exportExcel(Request $request)
@@ -259,8 +266,12 @@ class MonitorController extends Controller
             $csv .= ($index + 1) . ",\"{$absen->peserta->nama}\",\"" . ($absen->peserta->jabatan ?? '-') . "\",{$waktuAbsen},{$statusText}\n";
         }
 
+        // Bersihkan nama kegiatan dari karakter tidak valid untuk nama file
+        $cleanName = preg_replace('/[\/\\\\:*?"<>|]/', '_', $kegiatan->nama);
+        $cleanName = str_replace(' ', '_', $cleanName);
+        
         return response($csv)
             ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', 'attachment; filename="Laporan_Absensi_' . str_replace(' ', '_', $kegiatan->nama) . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.csv"');
+            ->header('Content-Disposition', 'attachment; filename="Laporan_Absensi_' . $cleanName . '_' . now('Asia/Jakarta')->format('Y-m-d') . '.csv"');
     }
 }
