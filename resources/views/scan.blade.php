@@ -240,10 +240,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Audio notifications
-        const successSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmgfCCJ+zPLZiDgIDWS57+OZVA0PVqzn8bllHgg2jdXzzn0vBSF0xe/eizELElyx6OyrWBUIQ5zd8sFuIAUuhM/z24k2CRZiturqnVITC0ml4PK8aB4IMo/W8tGAMQYfcsLu45hSEQpRp+Xxu2kjBi+BzvPajjkJFGC16+OdUhIMUqPi8L5qIAcuhM7z3Yo3CRdiu+zmnVMSC0qj4PG9aCAGLYPO8tyJNgkVYbXs450SE...');
-        const errorSound = new Audio('data:audio/wav;base64,UklGRmwBAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YSABAAABBR1bnMDYJRm3Yl5Y/7VdEPmYuUj8y2ZD/M8IQAL+TCM+B/HQWjD4v1E//NSjNf/RwqP+0bJ3/N1LMv/G3xv8zYct/c2PPf7JN0b+yVY1/c9OM//Tqyj//z4C//4wA//8OAPM/8r1TP/JaUL+z1g2/c/CL//WpCb/zzQO//8pCP/8QwD/2Z8j/8tePP7UcCz/25gd/0c8+f7Vhyb/yWg8/ss9Av/9KQL/31wW/9GILD...');
-
         let isFormReady = false;
 
         document.addEventListener('DOMContentLoaded', function() {

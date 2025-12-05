@@ -3,32 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\Kegiatan;
 use App\Models\Peserta;
 use App\Models\Absensi;
 
 /**
- * Controller untuk mengelola proses scanning NFC dan absensi.
+ * ScanController
  * 
- * Menangani pembacaan UID kartu NFC, validasi peserta,
- * pencatatan absensi, dan mencegah duplikasi absensi.
- * 
- * @package App\Http\Controllers
- * @author Sistem Absensi NFC
- * @version 1.0.0
+ * Controller untuk mengelola sistem absensi NFC BEM UDINUS.
+ * Menangani scanning kartu NFC, validasi peserta, dan pencatatan absensi.
  */
 class ScanController extends Controller
 {
     /**
-     * Menampilkan halaman scan absensi dengan daftar kegiatan aktif.
-     * 
-     * @return \Illuminate\View\View
+     * Tampilkan halaman scan absensi
      */
     public function index()
     {
-        // Mengambil semua kegiatan yang belum lewat tanggal
         $kegiatans = Kegiatan::whereDate('tanggal', '>=', Carbon::today())
                             ->orderBy('tanggal', 'asc')
                             ->get();
@@ -36,9 +28,11 @@ class ScanController extends Controller
         return view('scan', compact('kegiatans'));
     }
 
+    /**
+     * Proses scan absensi NFC
+     */
     public function store(Request $request)
     {
-        // Validasi input
         $request->validate([
             'uid' => 'required|string',
             'kegiatan_id' => 'required|exists:kegiatans,id'
@@ -47,116 +41,110 @@ class ScanController extends Controller
         $uid = $request->uid;
         $kegiatanId = $request->kegiatan_id;
 
-        // Cari peserta berdasarkan uid
         $peserta = Peserta::where('uid', $uid)->first();
         if (!$peserta) {
             return redirect()->back()->with('error', 'Peserta dengan UID tersebut tidak ditemukan!');
         }
 
-        // Ambil data kegiatan dulu untuk keperluan notifikasi
         $kegiatan = Kegiatan::findOrFail($kegiatanId);
 
-        // Cek duplicate absensi dengan toleransi scan berulang
         $existingAbsensi = Absensi::where('peserta_id', $peserta->id)
                                  ->where('kegiatan_id', $kegiatanId)
                                  ->first();
         
         if ($existingAbsensi) {
-            // Ambil session counter atau mulai dari 1
-            $sessionKey = 'scan_count_' . $peserta->id . '_' . $kegiatanId;
-            $scanCount = session($sessionKey, 0) + 1;
+            return $this->handleDuplicateScan($peserta, $kegiatan, $kegiatanId);
+        }
+
+        $status = $this->calculateAttendanceStatus($kegiatan);
+        
+        Absensi::create([
+            'peserta_id' => $peserta->id,
+            'kegiatan_id' => $kegiatanId,
+            'uid' => $uid,
+            'waktu_absen' => Carbon::now('Asia/Jakarta'),
+            'status' => $status
+        ]);
+
+        $this->initializeScanCounter($peserta->id, $kegiatanId);
+
+        return redirect()->route('scan.index')->with([
+            'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!!',
+            'selected_kegiatan' => $kegiatanId
+        ]);
+    }
+
+    /**
+     * Handle duplicate scan dengan toleransi
+     */
+    private function handleDuplicateScan($peserta, $kegiatan, $kegiatanId)
+    {
+        $sessionKey = 'scan_count_' . $peserta->id . '_' . $kegiatanId;
+        $scanCount = session($sessionKey, 0) + 1;
+        
+        $lastScanTime = session('last_scan_time_' . $peserta->id . '_' . $kegiatanId);
+        $currentTime = now();
+        
+        if ($lastScanTime && $currentTime->diffInSeconds($lastScanTime) > 30) {
+            session([$sessionKey => 1]);
+            $scanCount = 1;
+        } else {
             session([$sessionKey => $scanCount]);
-            
-            // Reset counter setelah 30 detik (untuk scan baru)
-            $lastScanTime = session('last_scan_time_' . $peserta->id . '_' . $kegiatanId);
-            $currentTime = now();
-            
-            if ($lastScanTime && $currentTime->diffInSeconds($lastScanTime) > 30) {
-                // Reset jika sudah lebih dari 30 detik
-                session([$sessionKey => 1]);
-                $scanCount = 1;
-            }
-            
-            // Update waktu scan terakhir
-            session(['last_scan_time_' . $peserta->id . '_' . $kegiatanId => $currentTime]);
-            
-            // Jika scan masih dalam toleransi (1-3 kali), tampilkan pesan hijau
-            if ($scanCount <= 3) {
-                return redirect()->route('scan.index')->with([
-                    'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!!',
-                    'selected_kegiatan' => $kegiatanId
-                ]);
-            }
-            
-            // Scan ke-4 dan seterusnya, tampilkan pesan merah
+        }
+        
+        session(['last_scan_time_' . $peserta->id . '_' . $kegiatanId => $currentTime]);
+        
+        if ($scanCount <= 3) {
             return redirect()->route('scan.index')->with([
-                'error' => 'Peserta ' . $peserta->nama . ' sudah absen di kegiatan ' . $kegiatan->nama,
+                'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!!',
                 'selected_kegiatan' => $kegiatanId
             ]);
         }
-
-        // Kegiatan sudah diambil di atas
-
-        // Hitung status tepat waktu atau telat
-        $tanggalKegiatan = $kegiatan->tanggal instanceof \Carbon\Carbon ? $kegiatan->tanggal->format('Y-m-d') : $kegiatan->tanggal;
         
-        // Format jam_batas_tepat dengan robust parsing
+        return redirect()->route('scan.index')->with([
+            'error' => 'Peserta ' . $peserta->nama . ' sudah absen di kegiatan ' . $kegiatan->nama,
+            'selected_kegiatan' => $kegiatanId
+        ]);
+    }
+
+    /**
+     * Hitung status absensi (tepat waktu/telat)
+     */
+    private function calculateAttendanceStatus($kegiatan)
+    {
+        $tanggalKegiatan = $kegiatan->tanggal instanceof \Carbon\Carbon 
+            ? $kegiatan->tanggal->format('Y-m-d') 
+            : $kegiatan->tanggal;
+        
         $jamBatas = $kegiatan->jam_batas_tepat;
-        // Pastikan format HH:MM
         if (strlen($jamBatas) == 5) {
-            $jamBatas = $jamBatas . ':00'; // Tambah detik jika tidak ada
-        } elseif (strlen($jamBatas) == 8) {
-            // Sudah format HH:MM:SS
-        } else {
-            // Default ke format yang aman
-            $jamBatas = '07:00:00';
+            $jamBatas .= ':00';
         }
         
         try {
             $batasWaktu = Carbon::parse($tanggalKegiatan . ' ' . $jamBatas, 'Asia/Jakarta');
         } catch (\Exception $e) {
-            // Fallback parsing
             $batasWaktu = Carbon::createFromFormat('Y-m-d H:i:s', $tanggalKegiatan . ' ' . $jamBatas, 'Asia/Jakarta');
         }
         
-        $waktuAbsen = Carbon::now('Asia/Jakarta');
-        
+        return Carbon::now('Asia/Jakarta')->lte($batasWaktu) ? 'tepat_waktu' : 'telat';
+    }
 
-        
-        $status = $waktuAbsen->lte($batasWaktu) ? 'tepat_waktu' : 'telat';
-
-        // Simpan absensi
-        $absensi = Absensi::create([
-            'peserta_id' => $peserta->id,
-            'kegiatan_id' => $kegiatanId,
-            'uid' => $uid,
-            'waktu_absen' => $waktuAbsen,
-            'status' => $status
-        ]);
-
-        // Initialize scan counter untuk peserta yang baru absen
-        $sessionKey = 'scan_count_' . $peserta->id . '_' . $kegiatanId;
+    /**
+     * Initialize scan counter untuk peserta baru
+     */
+    private function initializeScanCounter($pesertaId, $kegiatanId)
+    {
+        $sessionKey = 'scan_count_' . $pesertaId . '_' . $kegiatanId;
         session([
             $sessionKey => 1,
-            'last_scan_time_' . $peserta->id . '_' . $kegiatanId => now()
-        ]);
-
-        // Logging
-        Log::info('Absensi berhasil', [
-            'peserta_id' => $peserta->id,
-            'peserta_nama' => $peserta->nama,
-            'kegiatan_id' => $kegiatanId,
-            'kegiatan_nama' => $kegiatan->nama,
-            'status' => $status,
-            'waktu_absen' => $waktuAbsen->format('Y-m-d H:i:s')
-        ]);
-
-        return redirect()->route('scan.index')->with([
-            'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!! (Pertama kali)',
-            'selected_kegiatan' => $kegiatanId
+            'last_scan_time_' . $pesertaId . '_' . $kegiatanId => now()
         ]);
     }
 
+    /**
+     * API untuk riwayat absensi kegiatan
+     */
     public function attendanceHistory(Kegiatan $kegiatan)
     {
         $attendances = Absensi::with('peserta')
@@ -168,11 +156,9 @@ class ScanController extends Controller
         $data = $attendances->map(function($attendance) {
             return [
                 'id' => $attendance->id,
-                'peserta' => [
-                    'nama' => $attendance->peserta->nama
-                ],
+                'peserta' => ['nama' => $attendance->peserta->nama],
                 'status' => $attendance->status,
-                'waktu_absen' => \Carbon\Carbon::parse($attendance->waktu_absen)->format('H:i:s')
+                'waktu_absen' => Carbon::parse($attendance->waktu_absen)->format('H:i:s')
             ];
         });
 

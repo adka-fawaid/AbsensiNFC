@@ -8,17 +8,23 @@ use App\Models\Absensi;
 use App\Models\Peserta;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+/**
+ * MonitorController
+ * 
+ * Controller untuk monitoring dan pelaporan data absensi BEM UDINUS.
+ */
 class MonitorController extends Controller
 {
+    /**
+     * Tampilkan halaman monitoring absensi
+     */
     public function index(Request $request)
     {
         $kegiatanId = $request->get('kegiatan_id');
         $kegiatan = null;
         $absensis = collect();
         $totalPeserta = Peserta::count();
-        $hadir = 0;
-        $tepatWaktu = 0;
-        $terlambat = 0;
+        $statistik = ['hadir' => 0, 'tepat_waktu' => 0, 'terlambat' => 0];
 
         if ($kegiatanId) {
             $kegiatan = Kegiatan::findOrFail($kegiatanId);
@@ -27,9 +33,11 @@ class MonitorController extends Controller
                              ->orderBy('waktu_absen', 'desc')
                              ->get();
             
-            $hadir = $absensis->count();
-            $tepatWaktu = $absensis->where('status', 'tepat_waktu')->count();
-            $terlambat = $absensis->where('status', 'terlambat')->count();
+            $statistik = [
+                'hadir' => $absensis->count(),
+                'tepat_waktu' => $absensis->where('status', 'tepat_waktu')->count(),
+                'terlambat' => $absensis->where('status', 'terlambat')->count()
+            ];
         }
 
         $kegiatans = Kegiatan::orderBy('tanggal', 'desc')
@@ -38,8 +46,8 @@ class MonitorController extends Controller
 
         return view('monitor.index', compact(
             'kegiatans', 'kegiatan', 'absensis', 
-            'totalPeserta', 'hadir', 'terlambat'
-        ));
+            'totalPeserta'
+        ) + $statistik);
     }
 
     public function scan(Request $request)

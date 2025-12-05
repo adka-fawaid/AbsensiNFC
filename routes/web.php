@@ -1,43 +1,49 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\{ScanController, MonitorController, AuthController, DashboardController, PesertaController, KegiatanController};
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Sistem Absensi NFC BEM UDINUS - Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
+| 
+| Routes untuk aplikasi absensi NFC BEM Keluarga Mahasiswa UDINUS.
+| Terdiri dari public routes (scan & monitor) dan admin routes (CRUD).
 |
 */
 
-// Public routes (tidak perlu login)
-Route::get('/', [App\Http\Controllers\ScanController::class, 'index'])->name('home');
-Route::get('/scan', [App\Http\Controllers\ScanController::class, 'index'])->name('scan.index');
-Route::post('/scan', [App\Http\Controllers\ScanController::class, 'store'])->name('scan.store');
+// === PUBLIC ROUTES ===
+// Halaman utama & scanning absensi
+Route::get('/', [ScanController::class, 'index'])->name('home');
+Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
+Route::post('/scan', [ScanController::class, 'store'])->name('scan.store');
+Route::get('/scan/attendance-history/{kegiatan}', [ScanController::class, 'attendanceHistory'])->name('scan.attendance.history');
 
-// Scan history (publik)
-Route::get('/scan/attendance-history/{kegiatan}', [App\Http\Controllers\ScanController::class, 'attendanceHistory'])->name('scan.attendance.history');
+// Monitoring & pelaporan
+Route::prefix('monitor')->name('monitor.')->group(function () {
+    Route::get('/', [MonitorController::class, 'index'])->name('index');
+    Route::get('/data', [MonitorController::class, 'getData'])->name('data');
+    Route::post('/scan', [MonitorController::class, 'scan'])->name('scan');
+    Route::get('/export/pdf', [MonitorController::class, 'exportPdf'])->name('export.pdf');
+    Route::get('/export/excel', [MonitorController::class, 'exportExcel'])->name('export.excel');
+});
 
-// Monitor routes (publik)
-Route::get('/monitor', [App\Http\Controllers\MonitorController::class, 'index'])->name('monitor.index');
-Route::get('/monitor/data', [App\Http\Controllers\MonitorController::class, 'getData'])->name('monitor.data');
-Route::post('/monitor/scan', [App\Http\Controllers\MonitorController::class, 'scan'])->name('monitor.scan');
-Route::get('/monitor/export/pdf', [App\Http\Controllers\MonitorController::class, 'exportPdf'])->name('monitor.export.pdf');
-Route::get('/monitor/export/excel', [App\Http\Controllers\MonitorController::class, 'exportExcel'])->name('monitor.export.excel');
+// === AUTHENTICATION ===
+Route::prefix('auth')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('admin.login.form');
+    Route::post('/login', [AuthController::class, 'login'])->name('admin.login');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
+});
 
-// Auth routes
-Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLoginForm'])->name('admin.login.form');
-Route::post('/login', [App\Http\Controllers\AuthController::class, 'login'])->name('admin.login');
-Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('admin.logout');
+// Alias untuk backward compatibility
+Route::get('/login', [AuthController::class, 'showLoginForm']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
-// Protected routes (perlu login) - hanya untuk admin management
+// === ADMIN ROUTES (Protected) ===
 Route::middleware('auth:admin')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-    
-    // Resource routes - hanya admin yang bisa CRUD
-    Route::resource('peserta', App\Http\Controllers\PesertaController::class);
-    Route::resource('kegiatan', App\Http\Controllers\KegiatanController::class);
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('peserta', PesertaController::class);
+    Route::resource('kegiatan', KegiatanController::class);
 });
