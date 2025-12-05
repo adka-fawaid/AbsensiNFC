@@ -14,38 +14,45 @@ class KegiatanSeeder extends Seeder
      */
     public function run(): void
     {
-        $today = Carbon::today();
-        $tomorrow = Carbon::tomorrow();
-
         $kegiatans = [
             [
-                'nama' => 'Rapat Bulanan',
-                'tanggal' => $today->format('Y-m-d'),
+                'nama' => 'Rapat Koordinasi BEM UDINUS',
+                'tanggal' => '2025-12-05',
                 'jam_mulai' => '08:00:00',
                 'jam_batas_tepat' => '08:15:00',
-                'lokasi' => 'Ruang Meeting A',
-                'keterangan' => 'Rapat evaluasi bulanan'
+                'lokasi' => 'Ruang Rapat BEM UDINUS',
+                'keterangan' => 'Rapat koordinasi mingguan pengurus BEM UDINUS'
             ],
             [
-                'nama' => 'Training NFC System',
-                'tanggal' => $today->format('Y-m-d'),
+                'nama' => 'Training NFC Absensi System',
+                'tanggal' => '2025-12-06',
                 'jam_mulai' => '10:00:00',
                 'jam_batas_tepat' => '10:10:00',
-                'lokasi' => 'Ruang Training',
-                'keterangan' => 'Pelatihan penggunaan sistem NFC'
+                'lokasi' => 'Lab Komputer UDINUS',
+                'keterangan' => 'Pelatihan penggunaan sistem absensi NFC untuk pengurus'
             ],
             [
-                'nama' => 'Workshop Development',
-                'tanggal' => $tomorrow->format('Y-m-d'),
+                'nama' => 'Workshop Kreativitas dan Inovasi',
+                'tanggal' => '2025-12-07',
                 'jam_mulai' => '09:00:00',
                 'jam_batas_tepat' => '09:15:00',
-                'lokasi' => 'Lab Computer',
-                'keterangan' => 'Workshop pengembangan aplikasi'
+                'lokasi' => 'Aula UDINUS',
+                'keterangan' => 'Workshop dari Kementerian Kreativitas dan Inovasi BEM UDINUS'
             ]
         ];
+
+        // Check if kegiatans already exist for today's date or later
+        $existingCount = Kegiatan::where('tanggal', '>=', Carbon::today())->count();
+        
+        if ($existingCount > 0) {
+            echo "Recent kegiatans already exist ({$existingCount} records). Skipping seeder.\n";
+            return;
+        }
 
         foreach ($kegiatans as $kegiatan) {
             Kegiatan::create($kegiatan);
         }
+        
+        echo "Created " . count($kegiatans) . " kegiatan records.\n";
     }
 }

@@ -12,10 +12,19 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Admin::create([
-            'name' => 'Administrator',
-            'email' => 'admin@admin.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password')
-        ]);
+        // Check if admin already exists
+        $existingAdmin = \App\Models\Admin::where('email', 'kreasi@bemkm.com')->first();
+        
+        if (!$existingAdmin) {
+            \App\Models\Admin::create([
+                'name' => 'kreasi',
+                'email' => 'kreasi@bemkm.com',
+                'password' => '$2y$12$RjMpHPSBW2SGMiJkHxWoreAdlAKBEeRpz60pZQ2xlVQ9nnDkdh7r.'
+            ]);
+            
+            echo "Admin 'kreasi' created successfully.\n";
+        } else {
+            echo "Admin 'kreasi' already exists.\n";
+        }
     }
 }

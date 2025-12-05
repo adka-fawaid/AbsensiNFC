@@ -40,6 +40,39 @@
             font-size: 0.85rem;
             color: #6c757d;
         }
+        .success-alert {
+            animation: successBounce 0.6s ease-out;
+        }
+        @keyframes successBounce {
+            0% { 
+                transform: scale(0.3) rotate(-10deg);
+                opacity: 0;
+            }
+            50% { 
+                transform: scale(1.1) rotate(2deg);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        .success-icon-animate {
+            animation: successIcon 0.8s ease-out;
+        }
+        @keyframes successIcon {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .error-alert {
+            animation: errorShake 0.6s ease-out;
+        }
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body>
@@ -72,18 +105,34 @@
 
                         <!-- Alert Messages -->
                         @if(session('success'))
-                            <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert" style="background-color: #28a745; border-color: #28a745; color: white;">
-                                <i class="bi bi-check-circle me-2"></i>
-                                {{ session('success') }}
+                            <div class="alert alert-success alert-dismissible fade show success-alert" role="alert" id="successAlert" style="background: linear-gradient(45deg, #28a745, #20c997); border: 3px solid #28a745; color: white; font-weight: bold; font-size: 1.2rem; box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4); border-radius: 15px;">
+                                <div class="text-center">
+                                    <i class="bi bi-check-circle-fill success-icon-animate me-2" style="font-size: 2rem; color: #fff;"></i>
+                                    <div class="mt-1">
+                                        {{ session('success') }}
+                                    </div>
+                                    <div class="mt-2">
+                                        <i class="bi bi-emoji-smile-fill" style="font-size: 1.2rem;"></i>
+                                        <small class="d-block opacity-90">Absensi berhasil dicatat pada {{ now()->format('H:i:s') }}</small>
+                                    </div>
+                                </div>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
                             </div>
                         @endif
 
                         @if(session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
-                                <i class="bi bi-exclamation-triangle me-2"></i>
-                                {{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            <div class="alert alert-danger alert-dismissible fade show error-alert" role="alert" id="errorAlert" style="background: linear-gradient(45deg, #dc3545, #e74c3c); border: 3px solid #dc3545; color: white; font-weight: bold; font-size: 1.1rem; box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4); border-radius: 15px;">
+                                <div class="text-center">
+                                    <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.8rem;"></i>
+                                    <div class="mt-1">
+                                        {{ session('error') }}
+                                    </div>
+                                    <div class="mt-2">
+                                        <i class="bi bi-info-circle"></i>
+                                        <small class="d-block opacity-90">Scan berulang terdeteksi pada {{ now()->format('H:i:s') }}</small>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
                             </div>
                         @endif
 
@@ -297,6 +346,28 @@
             // Clear UID input after success/error
             @if(session('success'))
                 playSuccessSound();
+                
+                // Add celebratory effect
+                setTimeout(function() {
+                    // Flash green background
+                    document.body.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    setTimeout(function() {
+                        document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    }, 500);
+                }, 100);
+                
+                // Auto-hide success alert after 5 seconds
+                setTimeout(function() {
+                    const successAlert = document.getElementById('successAlert');
+                    if (successAlert) {
+                        successAlert.style.transition = 'opacity 0.5s ease-out';
+                        successAlert.style.opacity = '0';
+                        setTimeout(function() {
+                            successAlert.remove();
+                        }, 500);
+                    }
+                }, 5000);
+                
                 // Refresh attendance history if kegiatan selected
                 if (kegiatanSelect.value) {
                     loadAttendanceHistory(kegiatanSelect.value);
@@ -309,6 +380,28 @@
 
             @if(session('error') || $errors->any())
                 playErrorSound();
+                
+                // Add warning effect
+                setTimeout(function() {
+                    // Flash red background briefly
+                    document.body.style.background = 'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)';
+                    setTimeout(function() {
+                        document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    }, 300);
+                }, 100);
+                
+                // Auto-hide error alert after 4 seconds
+                setTimeout(function() {
+                    const errorAlert = document.getElementById('errorAlert');
+                    if (errorAlert) {
+                        errorAlert.style.transition = 'opacity 0.5s ease-out';
+                        errorAlert.style.opacity = '0';
+                        setTimeout(function() {
+                            errorAlert.remove();
+                        }, 500);
+                    }
+                }, 4000);
+                
                 setTimeout(function() {
                     uidInput.value = '';
                     focusUidInput();

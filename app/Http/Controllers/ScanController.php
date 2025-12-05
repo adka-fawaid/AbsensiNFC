@@ -56,12 +56,39 @@ class ScanController extends Controller
         // Ambil data kegiatan dulu untuk keperluan notifikasi
         $kegiatan = Kegiatan::findOrFail($kegiatanId);
 
-        // Cek duplicate absensi
+        // Cek duplicate absensi dengan toleransi scan berulang
         $existingAbsensi = Absensi::where('peserta_id', $peserta->id)
                                  ->where('kegiatan_id', $kegiatanId)
                                  ->first();
         
         if ($existingAbsensi) {
+            // Ambil session counter atau mulai dari 1
+            $sessionKey = 'scan_count_' . $peserta->id . '_' . $kegiatanId;
+            $scanCount = session($sessionKey, 0) + 1;
+            session([$sessionKey => $scanCount]);
+            
+            // Reset counter setelah 30 detik (untuk scan baru)
+            $lastScanTime = session('last_scan_time_' . $peserta->id . '_' . $kegiatanId);
+            $currentTime = now();
+            
+            if ($lastScanTime && $currentTime->diffInSeconds($lastScanTime) > 30) {
+                // Reset jika sudah lebih dari 30 detik
+                session([$sessionKey => 1]);
+                $scanCount = 1;
+            }
+            
+            // Update waktu scan terakhir
+            session(['last_scan_time_' . $peserta->id . '_' . $kegiatanId => $currentTime]);
+            
+            // Jika scan masih dalam toleransi (1-3 kali), tampilkan pesan hijau
+            if ($scanCount <= 3) {
+                return redirect()->route('scan.index')->with([
+                    'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!!',
+                    'selected_kegiatan' => $kegiatanId
+                ]);
+            }
+            
+            // Scan ke-4 dan seterusnya, tampilkan pesan merah
             return redirect()->route('scan.index')->with([
                 'error' => 'Peserta ' . $peserta->nama . ' sudah absen di kegiatan ' . $kegiatan->nama,
                 'selected_kegiatan' => $kegiatanId
@@ -107,6 +134,13 @@ class ScanController extends Controller
             'status' => $status
         ]);
 
+        // Initialize scan counter untuk peserta yang baru absen
+        $sessionKey = 'scan_count_' . $peserta->id . '_' . $kegiatanId;
+        session([
+            $sessionKey => 1,
+            'last_scan_time_' . $peserta->id . '_' . $kegiatanId => now()
+        ]);
+
         // Logging
         Log::info('Absensi berhasil', [
             'peserta_id' => $peserta->id,
@@ -118,7 +152,7 @@ class ScanController extends Controller
         ]);
 
         return redirect()->route('scan.index')->with([
-            'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!!',
+            'success' => 'Terimakasih ' . $peserta->nama . ' sudah absen!! (Pertama kali)',
             'selected_kegiatan' => $kegiatanId
         ]);
     }
